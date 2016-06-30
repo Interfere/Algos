@@ -18,8 +18,8 @@ std::bitset<N+1> add(const std::bitset<N>& a, const std::bitset<N>& b) {
     // 2. Induction: c[0..j] == a[0..j-1] + b[0..j-1]
     // then: c[0..j+1] = a[0..j-1] + b[0..j-1] + (a[j] + b[j] + c[j])<<j == a[0..j] + b[0..j]
     for (int j = 0; j < N; ++j) {
-        c[N - j - 1] = a[N - j - 1] ^ b[N - j - 1] ^ c[N - j - 1];
-        c[N - j - 2] = a[N - j - 1] & b[N - j - 1];
+        c[j + 1] = (a[j] & b[j]) | (a[j] & c[j]) | (b[j] & c[j]);
+        c[j] = a[j] ^ b[j] ^ c[j];
     }
     // 3. Finalization: by induction c[0..j+1] == a[0..j] + b[0..j]
     return c;
@@ -27,12 +27,12 @@ std::bitset<N+1> add(const std::bitset<N>& a, const std::bitset<N>& b) {
 
 template <size_t N>
 bool Check_Addition(const std::bitset<N>& A, const std::bitset<N>& B, const std::bitset<N+1>& AplusB) {
-    return AplusB.to_ulong() == A.to_ulong() + B.to_ulong();
+    return AplusB.to_ulong() == (A.to_ulong() + B.to_ulong());
 }
 
 template <size_t N>
-void reportError(const std::bitset<N>& A, const std::bitset<N>& B) {
-        std::cout << "Failed " << A.to_ulong() << " + " << B.to_ulong() << " = " << A.to_ulong() + B.to_ulong() << std::endl;
+void reportError(const std::bitset<N>& A, const std::bitset<N>& B, const std::bitset<N+1>& C) {
+        std::cout << "Failed " << A.to_ulong() << " + " << B.to_ulong() << " = " << A.to_ulong() + B.to_ulong() << " got (" << C.to_ulong() << ")" << std::endl;
 }
 
 int main() {
@@ -43,29 +43,41 @@ int main() {
 
     std::bitset<3> a1(0);
     std::bitset<3> b1(0);
-    if (!Check_Addition(a1, b1, add(a1, b1))) {
-        reportError(a1, b1);
+    auto c1 = add(a1, b1);
+    if (!Check_Addition(a1, b1, c1)) {
+        reportError(a1, b1, c1);
         return 1;
     }
 
     std::bitset<0> a2;
     std::bitset<0> b2;
-    if (!Check_Addition(a2, b2, add(a2, b2))) {
-        reportError(a2, b2);
+    auto c2 = add(a2, b2);
+    if (!Check_Addition(a2, b2, c2)) {
+        reportError(a2, b2, c2);
         return 1;
     }
 
     std::bitset<3> a3(0);
     std::bitset<3> b3(1);
-    if (!Check_Addition(a3, b3, add(a3, b3))) {
-        reportError(a3, b3);
+    auto c3 = add(a3, b3);
+    if (!Check_Addition(a3, b3, c3)) {
+        reportError(a3, b3, c3);
         return 1;
     }
 
     std::bitset<16> a4(5);
     std::bitset<16> b4(10);
-    if (!Check_Addition(a4, b4, add(a4, b4))) {
-        reportError(a4, b4);
+    auto c4 = add(a4, b4);
+    if (!Check_Addition(a4, b4, c4)) {
+        reportError(a4, b4, c4);
+        return 1;
+    }
+
+    std::bitset<2> a5(3);
+    std::bitset<2> b5(1);
+    auto c5 = add(a5, b5);
+    if (!Check_Addition(a5, b5, c5)) {
+        reportError(a5, b5, c5);
         return 1;
     }
 
